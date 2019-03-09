@@ -58,12 +58,7 @@ return
 
 run := true ; toggle on/off variable
 
-~lbutton::scripts(run, delay) ;ignoring modifiers like shift/alt/ctrl
-~+lbutton::scripts(run, delay)
-~^lbutton::scripts(run, delay)
-~!lbutton::scripts(run, delay)
-~+^lbutton::scripts(run, delay)
-~+^!lbutton::scripts(run, delay)
+~*$lbutton::scripts(run, delay) 
 
 scripts(run, delay) {
 	while (GetKeyState("lbutton", "P")){
