@@ -7,12 +7,16 @@ SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 
 Gui, Add, Text,, Toggle Hotkey (default f12): ;labeling text
 Gui, Add, Text,, Time delay (default 90):
+Gui, add, text,, Delay after click before macro starts (default 200):
 Gui, add, text,, Left click down for delay, then waits for a delay
 gui, add, text,,  
 gui, add, text,, Close the script with Ctrl+Shift+C
 Gui, Add, Edit, vhotkeys ym  ; adding variables with textboxes
 Gui, Add, Edit, vdelay 
-Gui, Add, Button, default gbutton_run w100 h30, Turn on  ;Button to click
+Gui, Add, Edit, vstartupDelay
+Gui, Add, Checkbox, vleftClick, Left click
+Gui, Add, Checkbox, vrightClick, Right click
+Gui, Add, Button, default gbutton_run w100 h30, Start  ;Button to click
 Gui, Add, Button, w100 h30 gtoggle_sound, Toggle Sound  ;Button to click
 Gui, Show, w400 h225, its not hacks its just starbucks
 return
@@ -21,8 +25,14 @@ GuiClose:
    ExitApp
 return
 
+sound = true
+
 toggle_sound:
-   sound = !sound
+   if (sound = true) {
+      sound := false
+   } else { 
+      sound := true
+   }
    Msgbox, Sound %sound%
 return
 
@@ -38,11 +48,13 @@ button_run:
    if (delay = "") { 
       delay := 90
    }
-
-   Hotkey, %hotkeys%, ToggleOn ; Toggle on/off
-   run := false ; toggle on/off 
-   SetTimer, run_clicker, %delay%
-   SetTimer, run_clicker, Off
+   if (startupDelay = "") {
+      startupDelay := 200
+   }
+   
+   ;// Set up a hotkey to change state of run
+   Hotkey, %hotkeys%, ToggleOn
+   run := false
 return
 
 ToggleOn:
@@ -59,21 +71,31 @@ ToggleOn:
    }
 return
 
-#If run
-~*lbutton::
-   SetTimer, run_clicker, On,
+$*~LButton::
+    sleep %startupDelay%
+    if (GetKeyState("LButton", "P") and run) {
+        GoSub, AutoClick
+    }
 return
 
-~*lbutton Up::
-   SetTimer, run_clicker, Off, 1
+; Label for auto clicking
+AutoClick:
+	;// Click stuff with small delays
+    if (leftClick = 1) {
+        Click, Left, Down
+        sleep 1
+        Click, Left, Up
+        sleep 1
+    }
+    if (rightClick = 1) {
+        Click, Right, Down
+        sleep 1
+        Click, Right, Up
+        sleep 1
+    }
+	; Run self again if mouse is still held down
+	if GetKeyState("LButton", "P")
+		SetTimer, AutoClick, -%delay%
 return
-#If
 
-run_clicker:
-   click left down
-   sleep 1
-   click left up
-return
-
-
-+^c::ExitApp ;exitapp thing
++^C::ExitApp
